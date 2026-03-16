@@ -1,0 +1,13 @@
+Test report for maxapi 0.12.0
+
+pytest:
+- 18 passed
+- 1 warning from third-party dependency python_multipart
+
+packaging:
+- python -m build: passed
+- twine check dist/*: passed
+
+Notes:
+- Added FSM/state storage, plugin API, structured callback payload parsing,
+  and release automation for GitHub Releases + PyPI Trusted Publishing.

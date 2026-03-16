@@ -1,4 +1,4 @@
-# maxapi-sdk 0.12.1
+# maxapi-sdk 0.12.2
 
 Python SDK для MAX Messenger Bot API.
 
@@ -54,7 +54,7 @@ async def handle_start(event):
         .link("Документация", "https://dev.max.ru/docs-api")
         .adjust(1, 1)
     )
-    await event.message.answer("Привет из maxapi 0.12.1", keyboard=keyboard)
+    await event.message.answer("Привет из maxapi 0.12.2", keyboard=keyboard)
 
 
 async def main() -> None:

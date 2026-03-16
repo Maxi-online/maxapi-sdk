@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.2
+
+- перевыпуск после фикса release workflow в `main`, чтобы новый тег использовал action-based GitHub release вместо `gh release create`.
+
 ## 0.12.1
 
 - исправлен release workflow: `github-release` теперь делает checkout перед `gh release create`;

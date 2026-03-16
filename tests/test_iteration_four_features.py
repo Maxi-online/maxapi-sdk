@@ -155,4 +155,4 @@ def test_publish_workflow_exists_and_uses_trusted_publishing():
 
     assert "pypa/gh-action-pypi-publish@release/v1" in content
     assert "id-token: write" in content
-    assert "gh release create" in content
+    assert "softprops/action-gh-release@v2" in content

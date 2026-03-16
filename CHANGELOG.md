@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.1
+
+- исправлен release workflow: `github-release` теперь делает checkout перед `gh release create`;
+- подготовлен повторный релиз после неуспешной первой попытки Trusted Publishing для `0.12.0`.
+
 ## 0.12.0
 
 - первый публичный релиз в PyPI под distribution name `maxapi-sdk` с import path `maxapi`;

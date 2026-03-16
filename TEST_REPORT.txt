@@ -1,4 +1,4 @@
-Test report for maxapi 0.12.0
+Test report for maxapi 0.12.1
 
 pytest:
 - 18 passed

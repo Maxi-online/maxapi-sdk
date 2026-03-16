@@ -51,10 +51,10 @@ twine check dist/*
 
 ```bash
 git add .
-git commit -m "Release 0.12.0"
-git tag v0.12.0
+git commit -m "Release 0.12.1"
+git tag v0.12.1
 git push origin HEAD
-git push origin v0.12.0
+git push origin v0.12.1
 ```
 
 ### 3. Проверить workflow

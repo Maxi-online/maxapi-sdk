@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import mimetypes
 from pathlib import Path
@@ -87,6 +88,29 @@ class BaseConnection(BotMixin):
             return json.loads(payload_text)
         except json.JSONDecodeError:
             return {"text": payload_text}
+
+
+    async def upload_file_stream(
+        self,
+        *,
+        filename: str,
+        stream: Any,
+        url: str,
+        upload_type: str,
+    ) -> Any:
+        if not hasattr(stream, "read"):
+            raise TypeError("stream должен поддерживать метод read().")
+        payload = stream.read()
+        if inspect.isawaitable(payload):
+            payload = await payload
+        if not isinstance(payload, (bytes, bytearray)):
+            raise TypeError("stream.read() должен возвращать bytes.")
+        return await self.upload_file_buffer(
+            filename=filename,
+            url=url,
+            buffer=bytes(payload),
+            upload_type=upload_type,
+        )
 
     def _ensure_transport(self, bot: Any) -> MaxApiTransport:
         if self._transport is not None:

@@ -1,5 +1,19 @@
 from .bot import Bot
-from .builders import InlineKeyboardBuilder
+from .builders import (
+    AudioAttachment,
+    BaseAttachment,
+    FileAttachment,
+    ImageAttachment,
+    InlineKeyboardBuilder,
+    VideoAttachment,
+    VoiceAttachment,
+    attachment_from_raw,
+    audio_attachment,
+    file_attachment,
+    image_attachment,
+    video_attachment,
+    voice_attachment,
+)
 from .callback_schema import CallbackPayloadSchema
 from .dispatcher import Dispatcher, Router
 from .filters import (
@@ -21,6 +35,8 @@ from .plugins import BasePlugin
 from .types import UpdateType
 
 __all__ = [
+    "AudioAttachment",
+    "BaseAttachment",
     "BaseMiddleware",
     "BasePlugin",
     "Bot",
@@ -32,8 +48,10 @@ __all__ = [
     "Dispatcher",
     "FSMContext",
     "FSMMiddleware",
+    "FileAttachment",
     "FunctionMiddleware",
     "HasAttachments",
+    "ImageAttachment",
     "InlineKeyboardBuilder",
     "MemoryStorage",
     "Regex",
@@ -46,4 +64,12 @@ __all__ = [
     "TextStartsWith",
     "UpdateType",
     "UserId",
+    "VideoAttachment",
+    "VoiceAttachment",
+    "attachment_from_raw",
+    "audio_attachment",
+    "file_attachment",
+    "image_attachment",
+    "video_attachment",
+    "voice_attachment",
 ]

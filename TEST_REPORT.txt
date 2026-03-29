@@ -1,13 +1,11 @@
-Test report for maxapi 0.12.2
+maxapi-sdk 0.13.0
 
-pytest:
-- 18 passed
-- 1 warning from third-party dependency python_multipart
-
-packaging:
+Validation summary
+- pytest -q: 23 passed
 - python -m build: passed
 - twine check dist/*: passed
 
-Notes:
-- Added FSM/state storage, plugin API, structured callback payload parsing,
-  and release automation for GitHub Releases + PyPI Trusted Publishing.
+Notes
+- Media layer extended with voice, bytes upload, stream upload, and typed attachment parsing.
+- Distribution package name: maxapi-sdk
+- Python import path: maxapi

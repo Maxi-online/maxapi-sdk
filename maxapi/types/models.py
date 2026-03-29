@@ -3,10 +3,18 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from ..builders import normalize_attachments
-
 from pydantic import Field, PrivateAttr
 
+from ..builders import (
+    AudioAttachment,
+    BaseAttachment,
+    FileAttachment,
+    ImageAttachment,
+    VideoAttachment,
+    attachment_from_raw,
+    extract_typed_attachments,
+    normalize_attachments,
+)
 from .base import ApiModel
 
 
@@ -92,6 +100,61 @@ class MessageBody(ApiModel):
     notify: bool | None = None
     format: TextFormat | None = Field(default=None, alias="format")
 
+    @property
+    def typed_attachments(self) -> list[BaseAttachment]:
+        return extract_typed_attachments(self.attachments)
+
+    @property
+    def images(self) -> list[ImageAttachment]:
+        attachments = extract_typed_attachments(
+            self.attachments,
+            attachment_type="image",
+        )
+        return [item for item in attachments if isinstance(item, ImageAttachment)]
+
+    @property
+    def videos(self) -> list[VideoAttachment]:
+        attachments = extract_typed_attachments(
+            self.attachments,
+            attachment_type="video",
+        )
+        return [item for item in attachments if isinstance(item, VideoAttachment)]
+
+    @property
+    def audios(self) -> list[AudioAttachment]:
+        attachments = extract_typed_attachments(
+            self.attachments,
+            attachment_type="audio",
+        )
+        return [item for item in attachments if isinstance(item, AudioAttachment)]
+
+    @property
+    def voices(self) -> list[AudioAttachment]:
+        return self.audios
+
+    @property
+    def files(self) -> list[FileAttachment]:
+        attachments = extract_typed_attachments(
+            self.attachments,
+            attachment_type="file",
+        )
+        return [item for item in attachments if isinstance(item, FileAttachment)]
+
+    def get_attachments(
+        self,
+        attachment_type: str | None = None,
+    ) -> list[BaseAttachment | dict[str, Any]]:
+        if self.attachments is None:
+            return []
+        if attachment_type is None:
+            return [attachment_from_raw(item) for item in self.attachments]
+        return list(
+            extract_typed_attachments(
+                self.attachments,
+                attachment_type=attachment_type,
+            )
+        )
+
 
 class Message(ApiModel):
     message_id: str | None = None
@@ -110,6 +173,48 @@ class Message(ApiModel):
     def bind_bot(self, bot: Any) -> "Message":
         self._bot = bot
         return self
+
+    @property
+    def attachments(self) -> list[dict[str, Any]]:
+        if self.body is None or self.body.attachments is None:
+            return []
+        return self.body.attachments
+
+    @property
+    def typed_attachments(self) -> list[BaseAttachment]:
+        if self.body is None:
+            return []
+        return self.body.typed_attachments
+
+    @property
+    def images(self) -> list[ImageAttachment]:
+        if self.body is None:
+            return []
+        return self.body.images
+
+    @property
+    def videos(self) -> list[VideoAttachment]:
+        if self.body is None:
+            return []
+        return self.body.videos
+
+    @property
+    def audios(self) -> list[AudioAttachment]:
+        if self.body is None:
+            return []
+        return self.body.audios
+
+    @property
+    def voices(self) -> list[AudioAttachment]:
+        if self.body is None:
+            return []
+        return self.body.voices
+
+    @property
+    def files(self) -> list[FileAttachment]:
+        if self.body is None:
+            return []
+        return self.body.files
 
     async def answer(
         self,

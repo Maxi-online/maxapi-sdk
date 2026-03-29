@@ -4,27 +4,29 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "maxapi-sdk"
-version = "0.12.2"
-description = "Python SDK for MAX Messenger Bot API"
+version = "0.13.0"
+description = "Production-ready Python SDK for MAX Messenger Bot API"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [
-  {name = "Maxim Strekolovskiy"}
+  {name = "maxapi-sdk contributors"}
 ]
 maintainers = [
   {name = "Maxim Strekolovskiy"}
 ]
-keywords = ["max", "messenger", "bot", "sdk", "api", "asyncio"]
+keywords = ["max", "messenger", "bot", "sdk", "python"]
 classifiers = [
   "Development Status :: 4 - Beta",
+  "Framework :: AsyncIO",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3 :: Only",
-  "Framework :: AsyncIO",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed"
 ]
 urls = {Homepage = "https://github.com/Maxi-online/maxapi-sdk", Repository = "https://github.com/Maxi-online/maxapi-sdk", Issues = "https://github.com/Maxi-online/maxapi-sdk/issues"}
@@ -46,6 +48,7 @@ dev = [
   "build>=1.2.0",
   "twine>=5.0.0"
 ]
+
 
 [tool.setuptools]
 include-package-data = true

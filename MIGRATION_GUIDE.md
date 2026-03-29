@@ -1,115 +1,91 @@
-# Migration guide: 0.11.x -> 0.12.0
+# Migration guide: 0.12.x → 0.13.0
 
-## Что появилось
+## What changed
 
-- FSM для сценариев с несколькими шагами;
-- storage abstraction и `MemoryStorage`;
-- plugin API для модульного подключения функциональности;
-- structured callback payload parsing;
-- release automation для GitHub Releases и PyPI.
+Version `0.13.0` expands the SDK media layer and standardizes package metadata for the `maxapi-sdk` distribution.
 
-## FSM
+## Distribution name
 
-Было:
+- PyPI package: `maxapi-sdk`
+- Python import path: `maxapi`
 
-```python
-dp = Dispatcher()
+Installation example:
+
+```bash
+pip install maxapi-sdk
 ```
 
-Стало:
+## New media capabilities
+
+The SDK now provides first-class helpers for:
+
+- `send_image()`
+- `send_audio()`
+- `send_voice()`
+- `send_video()`
+- `send_file()`
+- `upload_voice()`
+- bytes-based uploads
+- stream-based uploads
+
+## Before
 
 ```python
-from maxapi import Dispatcher, MemoryStorage
-
-
-dp = Dispatcher(storage=MemoryStorage())
+attachment = await bot.upload_audio("./voice.ogg")
+await bot.send_message(chat_id=1001, text="Voice", attachments=[attachment])
 ```
 
-Использование state в handler:
+## After
 
 ```python
-from maxapi import State, StateFilter, StatesGroup
-
-
-class Form(StatesGroup):
-    name = State()
-    confirm = State()
-
-
-@dp.message_created()
-async def start_form(message, state):
-    if message.body.text == "/form":
-        await state.set_state(Form.name)
-        await state.update_data(step="name")
-
-
-@dp.message_created(StateFilter(Form.name))
-async def save_name(message, state, state_data):
-    await state.update_data(name=message.body.text)
+await bot.send_voice("./voice.ogg", chat_id=1001, text="Voice")
 ```
 
-## Plugin API
+## Bytes upload
 
 ```python
-from maxapi import BasePlugin
-
-
-class EchoPlugin(BasePlugin):
-    name = "echo"
-
-    def setup(self, router) -> None:
-        @router.message_created()
-        async def echo_handler(message):
-            await message.answer("plugin")
-
-
-dp.include_plugin(EchoPlugin())
+await bot.send_file(
+    chat_id=1001,
+    filename="report.pdf",
+    buffer=pdf_bytes,
+    text="Report",
+)
 ```
 
-## Structured callback payload
-
-Было:
+## Stream upload
 
 ```python
-@dp.message_callback(CallbackData("approve"))
-async def handle(event):
-    ...
+with open("./audio.ogg", "rb") as file_object:
+    await bot.send_voice(
+        chat_id=1001,
+        filename="audio.ogg",
+        stream=file_object,
+        text="Voice message",
+    )
 ```
 
-Стало:
+## Typed inbound media access
+
+Incoming attachments are now available through typed accessors:
 
 ```python
-from maxapi import CallbackPayloadSchema
-
-
-class AdminAction(CallbackPayloadSchema):
-    prefix = "admin"
-    action: str
-    user_id: int
-
-
-@dp.message_callback(AdminAction.filter(action="ban"))
-async def handle(callback_event):
-    parsed = callback_event.unpack(AdminAction)
-    print(parsed.user_id)
+@dispatcher.message_created()
+async def handle_media(message):
+    if message.images:
+        print(message.images[0].token)
+    if message.files:
+        print(message.files[0].url)
 ```
 
-## Новые внедряемые аргументы handler
+Available accessors:
 
-Теперь, кроме уже существующих `bot`, `dispatcher`, `router`, `message`, `callback`, `chat_id`, `user_id`, доступны:
+- `message.typed_attachments`
+- `message.images`
+- `message.audios`
+- `message.voices`
+- `message.videos`
+- `message.files`
 
-- `state` / `fsm_context`
-- `raw_state`
-- `state_data`
-- `callback_payload`
-- `callback_payload_text`
-- `callback_payload_dict`
+## Voice note
 
-## Release automation
-
-Для публикации релиза достаточно:
-
-1. обновить версию в `pyproject.toml` и `CHANGELOG.md`;
-2. создать git tag формата `v0.12.0`;
-3. push-нуть ветку и tag в GitHub;
-4. убедиться, что PyPI Trusted Publisher настроен для репозитория.
+At the MAX Bot API level, voice delivery uses the audio upload flow. In `maxapi-sdk`, `send_voice()` and `upload_voice()` provide the public developer-facing interface for that workflow.

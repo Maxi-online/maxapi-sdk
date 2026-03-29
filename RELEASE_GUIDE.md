@@ -1,45 +1,32 @@
 # Release guide
 
-## Целевой релизный контур
+## Current distribution
 
-- GitHub-репозиторий: `https://github.com/Maxi-online/maxapi-sdk`
-- PyPI distribution name: `maxapi-sdk`
+- PyPI package name: `maxapi-sdk`
 - Python import path: `maxapi`
-- Публикация выполняется только по тегу формата `v*`
 
-## Что уже настроено
+## CI/CD setup
 
-- `.github/workflows/tests.yml` — тесты и проверка сборки;
-- `.github/workflows/publish.yml` — валидация, сборка артефактов, публикация в PyPI и создание GitHub Release по тегу `v*`.
+- `.github/workflows/tests.yml` — test and build validation;
+- `.github/workflows/publish.yml` — PyPI publication and GitHub Release for tags matching `v*`.
 
-## Что нужно настроить один раз
+## One-time setup
 
 ### GitHub
 
-- Создать публичный репозиторий `Maxi-online/maxapi-sdk`.
-- Убедиться, что default branch выбран корректно.
-- У workflow должен быть доступ к `contents: write` для создания GitHub Release.
+- host the repository on GitHub;
+- ensure the release workflow has `contents: write` permission.
 
 ### PyPI
 
-- Войти в аккаунт PyPI и создать проект первой публикацией имени `maxapi-sdk`.
-- Добавить Trusted Publisher для репозитория `Maxi-online/maxapi-sdk`.
-- Указать workflow file: `.github/workflows/publish.yml`.
-- Environment name: `pypi`.
+- configure a Trusted Publisher for the target GitHub repository in the `maxapi-sdk` project;
+- after that, releases can be published without a long-lived API token.
 
-## Preflight перед первым релизом
+## Release checklist
 
-1. Проверить, что имя `maxapi-sdk` свободно в GitHub и PyPI.
-2. Проверить metadata в `pyproject.toml`.
-3. Проверить README как long description.
-4. Убедиться, что версия синхронизирована в:
-   - `pyproject.toml`
-   - `README.md`
-   - `CHANGELOG.md`
-
-## Как выпустить релиз
-
-### 1. Запустить локальную проверку
+1. update the version in `pyproject.toml`;
+2. update `README.md` and `CHANGELOG.md`;
+3. run local validation:
 
 ```bash
 pytest -q
@@ -47,21 +34,14 @@ python -m build
 twine check dist/*
 ```
 
-### 2. Создать commit и tag
+4. create a release commit and tag:
 
 ```bash
 git add .
-git commit -m "Release 0.12.2"
-git tag v0.12.2
-git push origin HEAD
-git push origin v0.12.2
+git commit -m "Release 0.13.0"
+git tag v0.13.0
+git push origin main
+git push origin v0.13.0
 ```
 
-### 3. Проверить workflow
-
-После push тега GitHub Actions выполнит:
-
-- тесты и package validation;
-- сборку wheel и sdist;
-- публикацию в PyPI через Trusted Publishing;
-- создание GitHub Release с артефактами из `dist/`.
+5. verify the GitHub Actions run and confirm that PyPI publication and GitHub Release completed successfully.

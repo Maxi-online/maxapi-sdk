@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, BinaryIO, Iterable
 
 from .builders import build_uploaded_attachment, normalize_attachments
 from .client.default import DefaultConnectionProperties
@@ -244,7 +244,10 @@ class Bot(BaseConnection):
     ) -> SuccessResponse:
         normalized_types = None
         if update_types is not None:
-            normalized_types = [item.value if hasattr(item, "value") else item for item in update_types]
+            normalized_types = [
+                item.value if hasattr(item, "value") else item
+                for item in update_types
+            ]
         payload = WebhookRequest(url=url, update_types=normalized_types, secret=secret)
         return await self.request(
             "POST",
@@ -274,7 +277,10 @@ class Bot(BaseConnection):
         if marker is not None:
             params["marker"] = marker
         if types:
-            params["types"] = ",".join(item.value if hasattr(item, "value") else item for item in types)
+            params["types"] = ",".join(
+                item.value if hasattr(item, "value") else item
+                for item in types
+            )
         return await self.request("GET", "/updates", model=UpdatesPage, params=params)
 
     async def create_upload(self, upload_type: UploadType | str) -> UploadResponse:
@@ -422,22 +428,46 @@ class Bot(BaseConnection):
         path: str | os.PathLike[str] | None = None,
         filename: str | None = None,
         buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
     ) -> dict[str, Any]:
         upload_response = await self.create_upload(upload_type)
         upload_value = upload_type.value if hasattr(upload_type, "value") else str(upload_type)
-        if path is None and buffer is None:
-            raise ValueError("Необходимо передать path или buffer для upload_attachment.")
+
+        source_count = sum(
+            value is not None
+            for value in (path, buffer, stream)
+        )
+        if source_count != 1:
+            raise ValueError(
+                "Для upload_attachment необходимо передать ровно один источник: "
+                "path, buffer или stream."
+            )
+
         if path is not None:
-            uploaded_payload = await self.upload_file(upload_response.url, str(path), upload_value)
-        else:
+            uploaded_payload = await self.upload_file(
+                upload_response.url,
+                str(path),
+                upload_value,
+            )
+        elif buffer is not None:
             if filename is None:
                 raise ValueError("Для buffer-загрузки необходимо передать filename.")
             uploaded_payload = await self.upload_file_buffer(
                 filename=filename,
                 url=upload_response.url,
-                buffer=buffer if buffer is not None else b"",
+                buffer=buffer,
                 upload_type=upload_value,
             )
+        else:
+            if filename is None:
+                raise ValueError("Для stream-загрузки необходимо передать filename.")
+            uploaded_payload = await self.upload_file_stream(
+                filename=filename,
+                stream=stream,
+                url=upload_response.url,
+                upload_type=upload_value,
+            )
+
         if not isinstance(uploaded_payload, dict):
             raise TypeError("MAX upload вернул неожиданный payload; ожидался JSON-объект.")
         return build_uploaded_attachment(
@@ -446,23 +476,119 @@ class Bot(BaseConnection):
             uploaded_payload=uploaded_payload,
         )
 
-    async def upload_image(self, path: str | os.PathLike[str]) -> dict[str, Any]:
-        return await self.upload_attachment(upload_type=UploadType.IMAGE, path=path)
+    async def upload_bytes(
+        self,
+        *,
+        upload_type: UploadType | str,
+        filename: str,
+        buffer: bytes,
+    ) -> dict[str, Any]:
+        return await self.upload_attachment(
+            upload_type=upload_type,
+            filename=filename,
+            buffer=buffer,
+        )
 
-    async def upload_video(self, path: str | os.PathLike[str]) -> dict[str, Any]:
-        return await self.upload_attachment(upload_type=UploadType.VIDEO, path=path)
+    async def upload_stream_attachment(
+        self,
+        *,
+        upload_type: UploadType | str,
+        filename: str,
+        stream: BinaryIO | Any,
+    ) -> dict[str, Any]:
+        return await self.upload_attachment(
+            upload_type=upload_type,
+            filename=filename,
+            stream=stream,
+        )
 
-    async def upload_audio(self, path: str | os.PathLike[str]) -> dict[str, Any]:
-        return await self.upload_attachment(upload_type=UploadType.AUDIO, path=path)
+    async def upload_image(
+        self,
+        path: str | os.PathLike[str] | None = None,
+        *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
+    ) -> dict[str, Any]:
+        return await self.upload_attachment(
+            upload_type=UploadType.IMAGE,
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+        )
 
-    async def upload_file_attachment(self, path: str | os.PathLike[str]) -> dict[str, Any]:
-        return await self.upload_attachment(upload_type=UploadType.FILE, path=path)
+    async def upload_video(
+        self,
+        path: str | os.PathLike[str] | None = None,
+        *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
+    ) -> dict[str, Any]:
+        return await self.upload_attachment(
+            upload_type=UploadType.VIDEO,
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+        )
+
+    async def upload_audio(
+        self,
+        path: str | os.PathLike[str] | None = None,
+        *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
+    ) -> dict[str, Any]:
+        return await self.upload_attachment(
+            upload_type=UploadType.AUDIO,
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+        )
+
+    async def upload_voice(
+        self,
+        path: str | os.PathLike[str] | None = None,
+        *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
+    ) -> dict[str, Any]:
+        return await self.upload_audio(
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+        )
+
+    async def upload_file_attachment(
+        self,
+        path: str | os.PathLike[str] | None = None,
+        *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
+    ) -> dict[str, Any]:
+        return await self.upload_attachment(
+            upload_type=UploadType.FILE,
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+        )
 
     async def send_media(
         self,
         *,
         upload_type: UploadType | str,
-        path: str | os.PathLike[str],
+        path: str | os.PathLike[str] | None = None,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
         chat_id: int | None = None,
         user_id: int | None = None,
         text: str | None = None,
@@ -475,7 +601,13 @@ class Bot(BaseConnection):
         attachment_ready_delay: float = 1.0,
         attachment_ready_backoff: float = 2.0,
     ) -> SendMessageResponse:
-        attachment = await self.upload_attachment(upload_type=upload_type, path=path)
+        attachment = await self.upload_attachment(
+            upload_type=upload_type,
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+        )
         if processing_wait > 0:
             await asyncio.sleep(processing_wait)
         return await self._send_with_attachment_retry(
@@ -494,8 +626,11 @@ class Bot(BaseConnection):
 
     async def send_image(
         self,
-        path: str | os.PathLike[str],
+        path: str | os.PathLike[str] | None = None,
         *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
         chat_id: int | None = None,
         user_id: int | None = None,
         text: str | None = None,
@@ -511,6 +646,9 @@ class Bot(BaseConnection):
         return await self.send_media(
             upload_type=UploadType.IMAGE,
             path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
             chat_id=chat_id,
             user_id=user_id,
             text=text,
@@ -526,8 +664,11 @@ class Bot(BaseConnection):
 
     async def send_video(
         self,
-        path: str | os.PathLike[str],
+        path: str | os.PathLike[str] | None = None,
         *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
         chat_id: int | None = None,
         user_id: int | None = None,
         text: str | None = None,
@@ -543,6 +684,9 @@ class Bot(BaseConnection):
         return await self.send_media(
             upload_type=UploadType.VIDEO,
             path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
             chat_id=chat_id,
             user_id=user_id,
             text=text,
@@ -558,8 +702,11 @@ class Bot(BaseConnection):
 
     async def send_audio(
         self,
-        path: str | os.PathLike[str],
+        path: str | os.PathLike[str] | None = None,
         *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
         chat_id: int | None = None,
         user_id: int | None = None,
         text: str | None = None,
@@ -575,6 +722,46 @@ class Bot(BaseConnection):
         return await self.send_media(
             upload_type=UploadType.AUDIO,
             path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
+            chat_id=chat_id,
+            user_id=user_id,
+            text=text,
+            keyboard=keyboard,
+            format=format,
+            notify=notify,
+            disable_link_preview=disable_link_preview,
+            processing_wait=processing_wait,
+            attachment_ready_retries=attachment_ready_retries,
+            attachment_ready_delay=attachment_ready_delay,
+            attachment_ready_backoff=attachment_ready_backoff,
+        )
+
+    async def send_voice(
+        self,
+        path: str | os.PathLike[str] | None = None,
+        *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
+        chat_id: int | None = None,
+        user_id: int | None = None,
+        text: str | None = None,
+        keyboard: Any | None = None,
+        format: TextFormat | None = None,
+        notify: bool | None = None,
+        disable_link_preview: bool | None = None,
+        processing_wait: float = 0.0,
+        attachment_ready_retries: int = 3,
+        attachment_ready_delay: float = 1.0,
+        attachment_ready_backoff: float = 2.0,
+    ) -> SendMessageResponse:
+        return await self.send_audio(
+            path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
             chat_id=chat_id,
             user_id=user_id,
             text=text,
@@ -590,8 +777,11 @@ class Bot(BaseConnection):
 
     async def send_file(
         self,
-        path: str | os.PathLike[str],
+        path: str | os.PathLike[str] | None = None,
         *,
+        filename: str | None = None,
+        buffer: bytes | None = None,
+        stream: BinaryIO | Any | None = None,
         chat_id: int | None = None,
         user_id: int | None = None,
         text: str | None = None,
@@ -607,6 +797,9 @@ class Bot(BaseConnection):
         return await self.send_media(
             upload_type=UploadType.FILE,
             path=path,
+            filename=filename,
+            buffer=buffer,
+            stream=stream,
             chat_id=chat_id,
             user_id=user_id,
             text=text,

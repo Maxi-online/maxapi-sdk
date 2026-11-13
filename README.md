@@ -138,10 +138,10 @@ The repository includes CI workflows for tests, package build validation, GitHub
 
 The public import path remains `maxapi`, while the distribution package name is `maxapi-sdk`.
 
-## Конфигурация, приватность и воспроизведение
+## Configuration, privacy and reproducibility
 
-Передавайте токен бота через окружение или менеджер секретов приложения, затем в конструктор SDK по примерам выше. SDK не требует хранить токен в исходниках. Строки `test-token` в тестах — синтетические fixtures. Не включайте токены в исключения, HTTP-логи и issue attachments.
+Read the bot token from the application's environment or secret manager, then pass it to the SDK constructor as shown above. The SDK does not require credentials in source files. Strings such as `test-token` are synthetic test fixtures. Exclude tokens from exceptions, HTTP logs and issue attachments.
 
-Секреты храните в игнорируемых локальных файлах или переменных окружения. Безопасные примеры содержат только структуру настройки. Не передавайте секреты в командной строке и не добавляйте заполненные `.env`, приватные ключи, базы данных и логи в коммиты.
+Keep credentials in ignored local files or environment variables. Configuration examples contain structure only. Avoid passing secrets on the command line or committing populated `.env` files, private keys, databases or logs.
 
-Workflow [Secret scan](.github/workflows/secret-scan.yml) проверяет текущие файлы и входящие коммиты Gitleaks 8.30.1 с редактированием значений в выводе. Это проверка на известные шаблоны, а не подтверждение отсутствия всех возможных утечек. Удаление значения из HEAD не очищает старую историю; порядок действий описан в [SECURITY.md](SECURITY.md).
+The [Secret scan](.github/workflows/secret-scan.yml) workflow scans current files and incoming commits with Gitleaks 8.30.1 and redacts matched values. Pattern scanning cannot prove that every possible disclosure is absent. Removing a value from HEAD does not clean older history; see [SECURITY.md](SECURITY.md) for incident handling.

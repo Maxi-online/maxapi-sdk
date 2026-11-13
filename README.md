@@ -14,7 +14,7 @@ The SDK brings transport, event handling and bot application structure into sepa
 - [Runtimes](maxapi/runners) provide polling/webhook entry points; FSM uses pluggable storage with an included in-memory implementation.
 - [Tests](tests) and [CI](.github/workflows/tests.yml) cover the library and package build. The configured Python test matrix is 3.10–3.13.
 
-Package metadata currently classifies the SDK as **Beta**. The repository includes a [v0.13.0 release](https://github.com/Maxi-online/maxapi-sdk/releases/tag/v0.13.0) and release automation. Those are evidence of a tested release process, not a blanket guarantee for every deployment or API edge case.
+Package metadata classifies the SDK as **Beta**. The [v0.13.0 release](https://github.com/Maxi-online/maxapi-sdk/releases/tag/v0.13.0), Python 3.10–3.13 CI matrix, package-build checks and release automation make the library's compatibility and release process visible.
 
 ## Highlights
 

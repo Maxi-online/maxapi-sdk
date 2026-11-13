@@ -1,8 +1,20 @@
-# maxapi-sdk 0.13.0
+# maxapi-sdk
 
-`maxapi-sdk` is a production-ready Python SDK for the MAX Messenger Bot API.
+**An asynchronous Python SDK for the MAX Messenger Bot API, with typed API access and composable bot runtimes.**
 
-The package is designed for teams that need a reliable foundation for bot development and operations: typed API access, resilient transport, polling and webhook runtimes, routing, middleware, FSM, plugin support, callback handling, and first-class media workflows.
+Distribution: `maxapi-sdk` · Import package: `maxapi` · Current package version: **0.13.0** · Python **3.10+**.
+
+The SDK brings transport, event handling and bot application structure into separate components: retries/backoff, polling and webhooks, routing, middleware, finite-state workflows and media handling.
+
+## Engineering approach
+
+- [Transport](maxapi/transport/client.py) handles HTTP requests, retry/backoff and API errors.
+- [Bot client](maxapi/bot.py) exposes endpoint and media operations.
+- [Dispatcher](maxapi/dispatcher.py) composes routing, middleware, filters and dependency injection.
+- [Runtimes](maxapi/runners) provide polling/webhook entry points; FSM uses pluggable storage with an included in-memory implementation.
+- [Tests](tests) and [CI](.github/workflows/tests.yml) cover the library and package build. The configured Python test matrix is 3.10–3.13.
+
+Package metadata currently classifies the SDK as **Beta**. The repository includes a [v0.13.0 release](https://github.com/Maxi-online/maxapi-sdk/releases/tag/v0.13.0) and release automation. Those are evidence of a tested release process, not a blanket guarantee for every deployment or API edge case.
 
 ## Highlights
 
@@ -125,3 +137,4 @@ The repository includes CI workflows for tests, package build validation, GitHub
 ## Compatibility
 
 The public import path remains `maxapi`, while the distribution package name is `maxapi-sdk`.
+
